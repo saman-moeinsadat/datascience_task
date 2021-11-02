@@ -1,0 +1,63 @@
+version: '3.7'
+
+
+networks:
+  localstack-network:
+    name: localstack
+
+services:
+  s3:
+    image: localstack/localstack
+    container_name: s3
+    networks:
+      - localstack-network
+    ports:
+      - "4566:4566"
+    environment:
+      - SERVICES=s3
+      - AWS_REGION=eu-central-1
+      - AWS_ACCESS_KEY_ID="test"
+      - AWS_SECRET_ACCESS_KEY="test"
+      - AWS_BUCKET_NAME=s3-bucket
+      - AWS_ENDPOINT_URL=http://s3:4566
+    volumes:
+      - "./localstack_init:/docker-entrypoint-initaws.d"
+      - "./localstack_data:/tmp/localstack"
+  train:
+    image: local/most-similar
+    container_name: train
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - s3
+    environment:
+      - AWS_REGION=eu-central-1
+      - AWS_ACCESS_KEY_ID="test"
+      - AWS_SECRET_ACCESS_KEY="test"
+      - AWS_BUCKET_NAME=s3-bucket
+      - AWS_ENDPOINT_URL=http://s3:4566
+    volumes:
+      - "./glove.6B:/deploy/glove.6B"
+      - "./data:/deploy/data"
+    networks:
+      - localstack-network
+    command: python3 app/train.py
+  app:
+    image: local/most-similar
+    container_name: app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - train
+    ports:
+      - 5000:5000
+    environment:
+      - AWS_REGION=eu-central-1
+      - AWS_ACCESS_KEY_ID="test"
+      - AWS_SECRET_ACCESS_KEY="test"
+      - AWS_BUCKET_NAME=s3-bucket
+      - AWS_ENDPOINT_URL=http://s3:4566
+    networks:
+      - localstack-network
