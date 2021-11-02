@@ -1,12 +1,8 @@
 FROM python:3.7
 
-# COPY app /deploy/app
-RUN apt-get -y update       
-RUN apt-get -y install git
-RUN git clone https://github.com/saman-moeinsadat/datascience_task
+COPY app /deploy/app
 
-RUN pip3 install -r datascience_task/app/requirements.txt
-RUN ./datascience_task/setup.sh
+RUN pip3 install -r /deploy/app/requirements.txt
 
-WORKDIR /datascience_task
+WORKDIR /deploy
 CMD python3 app/app.py
