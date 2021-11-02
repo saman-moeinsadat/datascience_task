@@ -22,6 +22,9 @@ current_path = os.getcwd()
 nltk.download('stopwords')
 nltk.download('wordnet')
 
+
+# removes punctuations and ascii characters and convert
+# the string to lower case.
 def lower_ascii_punctuation_removed(tokens):
     new_tokens = []
     for token in tokens:
@@ -34,6 +37,7 @@ def lower_ascii_punctuation_removed(tokens):
             new_tokens.append(punct_removed)
             
     return new_tokens
+
 
 def replace_numbers(words):
     """
@@ -77,7 +81,8 @@ def lemmatize_verbs(words):
     return lemmas
 
 
-
+# preprocesses the dataset and makes it ready for trainning
+# wrapper function around above functions.
 def preprocess_tokenize_text(str_sentence):
     links_removed = re.sub(r"http\S+", "", str_sentence)
     at_removed = re.sub(r"@\S+", "", links_removed)
@@ -87,13 +92,13 @@ def preprocess_tokenize_text(str_sentence):
     tokenized_str = lower_ascii_punctuation_removed(tokenized_str)
     numbers_replaced = replace_numbers(tokenized_str)
     stopwords_removed = remove_stopwords(numbers_replaced)
-    # stemmed = stem_words(stopwords_removed)
     lemmatized = lemmatize_verbs(stopwords_removed)
-    # lemmatized = [bytes(word, 'utf-8') for word in lemmatized]
 
     return lemmatized
 
 
+# load glove word to vector embedding model and vectors
+# for transfer learning of or embedding model.
 def make_glove():
     glove_file = datapath(current_path +\
         "/glove.6B/glove.6B.300d.txt")
@@ -115,6 +120,8 @@ def test_w2v_pos_neg(model, pairs):
         print()
 
 
+# transfer learning of word to vector model with our
+# dataset
 def train_glove(glove_vectors, threshold=10, min_count=20):
 
     print("Bulding the Corpus...")
@@ -149,6 +156,7 @@ def train_glove(glove_vectors, threshold=10, min_count=20):
     model.build_vocab(trigramed_tokens)
     total_examples = model.corpus_count
 
+    # loading GloVe vectors and weights.
     model.build_vocab([list(glove_vectors.index_to_key)], update=True)
 
     print("Training...")
@@ -175,11 +183,11 @@ if __name__ == "__main__":
     print("Saving the model...")
     model.save(current_path + "/word2vec.model")
     endpoint_url = os.environ.get("AWS_ENDPOINT_URL")
-    # endpoint_url = os.getenv("LOCALSTACK_ENDPOINT")
     bucket = os.environ.get("AWS_BUCKET_NAME")
-    # s3 = wait_for_s3(endpoint_url, bucket, 'currated.json')
+    # creating s3 client.
     s3 = boto3.client('s3', endpoint_url=endpoint_url)
     print("Uploading the model...")
+    # upload the model to s3 bucket.
     s3.upload_file(current_path+'/word2vec.model', bucket, \
         'word2vec.model')
     s3.upload_file(current_path+'/word2vec.model.vectors.npy', \
