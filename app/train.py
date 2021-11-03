@@ -29,7 +29,7 @@ def lower_ascii_punctuation_removed(tokens):
     new_tokens = []
     for token in tokens:
         ascii_removed = unicodedata.normalize('NFKD', token).\
-            encode('ascii', 'ignore').decode('utf-8', 'ignore').lower()
+        encode('ascii', 'ignore').decode('utf-8', 'ignore').lower()
 
         punct_removed = re.sub(r'[^\w\s]', '', ascii_removed)
 
@@ -131,10 +131,12 @@ def train_glove(glove_vectors, threshold=10, min_count=20):
     data['Tokenized'] = data['OriginalTweet'].\
         map(lambda x: preprocess_tokenize_text(x))
     documents = data['Tokenized']
-    sentences = [sentence for sentence in documents if len(sentence) != 0]
+    sentences = [sentence for sentence in documents \
+        if len(sentence) != 0]
 
     # get bigrams
-    bigram = Phrases(sentences, min_count=min_count, threshold=threshold)
+    bigram = Phrases(sentences, min_count=min_count, \
+        threshold=threshold)
     bigram_phraser = Phraser(bigram)
 
     bigramed_tokens = []

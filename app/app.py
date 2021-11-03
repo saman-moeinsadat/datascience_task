@@ -47,10 +47,12 @@ def find_similar():
             similars = ", ".join([sim[0].capitalize()\
                 for sim in similars])
 
-            return render_template('index4.html', similars=similars)
+            return render_template('index4.html', \
+                similars=similars)
 
         except KeyError:
-            return render_template('index5.html', word=word.capitalize())
+            return render_template('index5.html', \
+                word=word.capitalize())
 
 
 # function for making S3 sevice wait for the model
