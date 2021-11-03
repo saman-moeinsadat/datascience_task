@@ -39,11 +39,10 @@ def lower_ascii_punctuation_removed(tokens):
     return new_tokens
 
 
+
+# Replace all interger occurrences in list of tokenized
+# words with textual representation.
 def replace_numbers(words):
-    """
-    Replace all interger occurrences in list of tokenized
-    words with textual representation
-    """
     p = inflect.engine()
     new_words = []
     for word in words:
@@ -54,8 +53,9 @@ def replace_numbers(words):
             new_words.append(word)
     return new_words
 
+
+# Remove stop words from list of tokenized words.
 def remove_stopwords(words):
-    """Remove stop words from list of tokenized words"""
     new_words = []
     for word in words:
         if word not in stopwords.words('english'):
@@ -63,7 +63,7 @@ def remove_stopwords(words):
     return new_words
 
 def stem_words(words):
-    """Stem words in list of tokenized words"""
+    # Stem words in list of tokenized words.
     stemmer = LancasterStemmer()
     stems = []
     for word in words:
@@ -71,8 +71,8 @@ def stem_words(words):
         stems.append(stem)
     return stems
 
+# Lemmatize verbs in list of tokenized words.
 def lemmatize_verbs(words):
-    """Lemmatize verbs in list of tokenized words"""
     lemmatizer = WordNetLemmatizer()
     lemmas = []
     for word in words:
@@ -81,7 +81,7 @@ def lemmatize_verbs(words):
     return lemmas
 
 
-# preprocesses the dataset and makes it ready for trainning
+# Pre-processes the dataset and makes it ready for trainning.
 # wrapper function around above functions.
 def preprocess_tokenize_text(str_sentence):
     links_removed = re.sub(r"http\S+", "", str_sentence)
@@ -111,6 +111,7 @@ def make_glove():
     return glove_vectors
 
 
+# Auxiliary function to test trained model.
 def test_w2v_pos_neg(model, pairs):
     for (pos, neg) in pairs:
         math_result = model.most_similar(positive=pos, negative=neg)
@@ -180,14 +181,17 @@ if __name__ == "__main__":
     print("Loading GLoVe...")
     glove_vectors = make_glove()
     model = train_glove(glove_vectors)
+
     print("Saving the model...")
     model.save(current_path + "/word2vec.model")
+
+    # creating s3 client.
     endpoint_url = os.environ.get("AWS_ENDPOINT_URL")
     bucket = os.environ.get("AWS_BUCKET_NAME")
-    # creating s3 client.
     s3 = boto3.client('s3', endpoint_url=endpoint_url)
-    print("Uploading the model...")
+
     # upload the model to s3 bucket.
+    print("Uploading the model...")
     s3.upload_file(current_path+'/word2vec.model', bucket, \
         'word2vec.model')
     s3.upload_file(current_path+'/word2vec.model.vectors.npy', \
